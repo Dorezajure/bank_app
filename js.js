@@ -57,10 +57,11 @@ function displayMovements(movements) {
   containerMovements.innerHTML = "";
   movements.forEach(function(value, i) {
     const type = value > 0 ? "deposit" : "withdrawal";
+    const typeMessage = value > 0 ? "внесение" : "снятие";
     const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">
-          ${i + 1} снятие
+          ${i + 1} ${typeMessage}
         </div>
         <div class="movements__date">24/01/2037</div>
         <div class="movements__value">${value}</div>
@@ -71,7 +72,7 @@ function displayMovements(movements) {
 }
 displayMovements(account1.movements);
 
-// Создание логина и ФИО в объекте 
+// Создание логина и ФИО в объекте; логин в объекте будет задаваться на основе двух букв, первая имени и фамилии с маленькой буквы 
 function createLogIn(accs) {
   accs.forEach(function(acc) {
     acc.logIn = acc.owner
@@ -86,11 +87,13 @@ function createLogIn(accs) {
 createLogIn(accounts);
 
 // Подсчет и вывод на страницу общего баланса 
-function calcPrintBalance(movements) {
-  const balance = movements.reduce((acc, val) => acc + val);
-  labelBalance.textContent = `${balance} RUB`;
+function calcPrintBalance(acc) {
+  acc.balance = acc.movements.reduce(function (acc, val) {
+    return acc + val;
+  });
+
+  labelBalance.textContent = `${acc.balance} RUB`;
 }
-calcPrintBalance(account1.movements);
 
 // Сумма и вывод на страницу прихода и ухода в footer
 function calcDisplaySum(movements) {
@@ -106,5 +109,63 @@ function calcDisplaySum(movements) {
 
   labelSumInterest.textContent = `${incomes + out} RUB`;
 }
-calcDisplaySum(account1.movements);
+
+function updareUi(acc) {
+  displayMovements(acc.movements);
+  calcPrintBalance(acc);
+  calcDisplaySum(acc.movements);
+}
+
+
+//Логика для сайта, для входа в аккаунт и смене данных относительно массивов закрепленных за определнный аккаунт пользователя
+let currentAccount;
+btnLogin.addEventListener("click", function (e) { 
+  e.preventDefault(); //Сброс стандартного поведения кнопки при нажатии на нее
+  currentAccount = accounts.find(function (acc) {
+    return acc.logIn === inputLoginUsername.value;
+  });
+  console.log(currentAccount);
+  if(currentAccount && currentAccount.pin === Number(inputLoginPin.value)) {
+    containerApp.style.opacity = 100;
+    // inputLoginPin.value = inputLoginUsername.value = ""; чтобы убрать логин и пароль при заходе на сайт
+    inputLoginPin.value = inputLoginUsername.value = "";
+    //Замена элементов относительно введеного аккаунта 
+    updareUi(currentAccount);
+  }
+});
+
+//Перевод денежных средств
+btnTransfer.addEventListener("click", function (e) {
+  e.preventDefault();
+  const reciveAcc = accounts.find(function(acc){
+    return acc.logIn === inputTransferTo.value;
+  });
+  const amount = Number(inputTransferAmount.value);
+  if (
+    reciveAcc &&
+    amount > 0 && 
+    currentAccount.balance >= amount && 
+    reciveAcc.logIn !== currentAccount.logIn
+    ) {
+      currentAccount.movements.push(-amount);
+      reciveAcc.movements.push(amount);
+      updareUi(currentAccount);
+      inputTransferTo.value = inputTransferAmount.value = "";
+  }
+});
+
+//Выход из аккаунта
+btnClose.addEventListener("click", function(e) {
+  e.preventDefault();
+  if(inputCloseUsername.value === currentAccount.logIn && 
+    Number(inputClosePin.value) === currentAccount.pin) 
+    {
+      const index = accounts.findIndex(function(acc) {
+        return acc.logIn === currentAccount.logIn;
+      });
+      accounts.splice(index, 1);
+      containerApp.style.opacity = 0;
+  }
+  inputCloseUsername.value = inputClosePin.value = "";
+});
 
