@@ -169,3 +169,17 @@ btnClose.addEventListener("click", function(e) {
   inputCloseUsername.value = inputClosePin.value = "";
 });
 
+btnLoan.addEventListener("click", function(e) {
+  e.preventDefault(); //Сброс начальных параметров эфекта сбытия
+  const amount = Number(inputLoanAmount.value);
+  if(amount > 0) {
+    currentAccount.movements.push(amount);
+    updareUi(currentAccount);
+  }
+  inputLoanAmount.value = "";
+});
+
+const accMov = accounts.map((acc) => acc.movements);
+const allMov = accMov.flat();
+const allBalance = allMov.reduce((acc, mov) => acc + mov);
+console.log(allBalance);
