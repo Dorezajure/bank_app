@@ -183,3 +183,10 @@ const accMov = accounts.map((acc) => acc.movements);
 const allMov = accMov.flat();
 const allBalance = allMov.reduce((acc, mov) => acc + mov);
 console.log(allBalance);
+
+let sorted = false;
+btnSort.addEventListener("click", function(e) {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !sorted);
+  sorted = !sorted;
+});
